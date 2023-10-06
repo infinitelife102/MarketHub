@@ -201,7 +201,7 @@ export default function ProductDetailPage() {
                     }`}
                   >
                     <img
-                      src={image}
+                      src={image ?? ''}
                       alt={`${product.name} - ${index + 1}`}
                       className="w-full h-full object-cover"
                     />

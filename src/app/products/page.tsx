@@ -38,8 +38,11 @@ export default function ProductsPage() {
 
   useEffect(() => {
     fetchCategories();
+  }, []);
+
+  useEffect(() => {
     fetchProducts();
-  }, [selectedCategory, sortBy, searchQuery]);
+  }, [selectedCategory, sortBy, searchQuery, minRating, priceRange]);
 
   const fetchCategories = async () => {
     const { data } = await supabase
@@ -62,7 +65,13 @@ export default function ProductsPage() {
       .eq('is_active', true);
 
     if (selectedCategory) {
-      query = query.eq('category_id', selectedCategory);
+      const { data: childCategories } = await supabase
+        .from('categories')
+        .select('id')
+        .eq('parent_id', selectedCategory)
+        .eq('is_active', true);
+      const categoryIds = [selectedCategory, ...(childCategories?.map((c) => c.id) ?? [])];
+      query = query.in('category_id', categoryIds);
     }
 
     if (searchQuery) {
@@ -211,6 +220,16 @@ export default function ProductsPage() {
               <div>
                 <h4 className="font-medium text-gray-900 mb-3">Minimum Rating</h4>
                 <div className="space-y-2">
+                  <label className="flex items-center">
+                    <input
+                      type="radio"
+                      name="rating"
+                      checked={minRating === 0}
+                      onChange={() => setMinRating(0)}
+                      className="h-4 w-4 text-primary-600"
+                    />
+                    <span className="ml-2 text-sm text-gray-600">Any rating</span>
+                  </label>
                   {[4, 3, 2, 1].map((rating) => (
                     <label key={rating} className="flex items-center">
                       <input

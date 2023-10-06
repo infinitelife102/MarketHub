@@ -18,22 +18,32 @@ export default function AuthCallbackPage() {
       }
 
       if (session?.user) {
-        // Check if profile exists
+        const uid = session.user.id;
+        const email = session.user.email ?? '';
+        const fullName = session.user.user_metadata?.full_name ?? session.user.user_metadata?.name ?? null;
+        const avatarUrl = session.user.user_metadata?.avatar_url ?? null;
+
         const { data: profile } = await supabase
           .from('profiles')
-          .select('*')
-          .eq('id', session.user.id)
+          .select('id')
+          .eq('id', uid)
           .single();
 
-        // Create profile if it doesn't exist
         if (!profile) {
-          await supabase.from('profiles').insert({
-            id: session.user.id,
-            email: session.user.email,
-            full_name: session.user.user_metadata.full_name || session.user.user_metadata.name,
-            avatar_url: session.user.user_metadata.avatar_url,
+          const { error: insertError } = await supabase.from('profiles').insert({
+            id: uid,
+            email: email || 'unknown',
+            full_name: fullName,
+            avatar_url: avatarUrl,
             role: 'customer',
           });
+          if (insertError) console.error('Auth callback profile insert error:', insertError);
+        } else {
+          const { error: updateError } = await supabase
+            .from('profiles')
+            .update({ full_name: fullName, avatar_url: avatarUrl })
+            .eq('id', uid);
+          if (updateError) console.error('Auth callback profile update error:', updateError);
         }
 
         router.push('/');
