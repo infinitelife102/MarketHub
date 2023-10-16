@@ -164,7 +164,7 @@ export default function CartPage() {
                   value={couponCode}
                   onChange={(e) => setCouponCode(e.target.value)}
                   placeholder="Enter coupon code"
-                  className="flex-1 input"
+                  className="flex-1 input px-4"
                 />
                 <button
                   onClick={applyCoupon}
